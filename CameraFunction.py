@@ -11,9 +11,9 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 def detect_objects(yolo_model, image_tensor):
-    results = yolo_model(image_tensor)
+    results = yolo_model(image_tensor, conf=0.6)
     detections = results[0].boxes.data.cpu().numpy()  # Convert tensor to NumPy
-    class_names = results[0].names  # Class names from the model
+    class_names = yolo_model.names  # Class names from the model
     return detections, class_names
 
 
