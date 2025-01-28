@@ -82,8 +82,8 @@ def openCameraFunction(yolo_model, previous_label):
 
         # pre process the frame
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        img_pil = detect_objects(yolo_model, frame)
-        process_batch(frame, img_pil, previous_label)
+        img_pil, classname = detect_objects(yolo_model, frame)
+        process_batch(frame, img_pil, classname , previous_label)
 
         cv2.imshow('frame', frame)
         
@@ -96,7 +96,7 @@ def openCameraFunction(yolo_model, previous_label):
 
 if __name__ == "__main__":
     # yolo initialisation
-    yolo_model = YOLO('yolov8n.pt')
+    yolo_model = YOLO('yolov8s.pt')
     
     
     # Initialize the previous_labels dictionary
