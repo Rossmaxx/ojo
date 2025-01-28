@@ -1,7 +1,8 @@
 import cv2 
-import torch
 import matplotlib.pyplot as plt
 import time
+
+from ultralytics import YOLO
 
 
 # to supress a warning running on every cycle
@@ -10,54 +11,56 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 def detect_objects(yolo_model, image_tensor):
-    result = yolo_model(image_tensor)
+    results = yolo_model(image_tensor)
+    detections = results[0].boxes.data.cpu().numpy()  # Convert tensor to NumPy
+    class_names = results[0].names  # Class names from the model
+    return detections, class_names
 
-    detections = result.pandas().xyxy[0]
-    return detections
 
-
-def batch_descriptions(detections):
+def batch_descriptions(detections, class_names):
     description_batch = []
-    for _, row in detections.iterrows():
-        x1, y1, x2, y2 = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
-        class_name = row['name']
-
+    for detection in detections:
+        x1, y1, x2, y2, _, class_id = detection[:6]
+        class_name = class_names[int(class_id)]
         description = f"Label: {class_name}\nPosition: Center at ({(x2+x1)/2:.2f}, {(y2+y1)/2:.2f}), Size: ({x2-x1}, {y2-y1})\n"
         description_batch.append(description)
-
     return " ".join(description_batch)
 
 
-def process_batch(image, detections, previous_labels, language_ch):
-    current_labels = {}
-    draw_boxes(image, detections)
 
-    for _, row in detections.iterrows():
-        class_name = row['name']
+def process_batch(image, detections, class_names, previous_labels):
+    current_labels = {}
+    draw_boxes(image, detections, class_names)
+
+    for detection in detections:
+        _, _, _, _, _, class_id = detection[:6]
+        class_name = class_names[int(class_id)]
         current_labels[class_name] = class_name
-    
+
     # Check if the labels have changed
     if current_labels != previous_labels:
-        batch_descriptions(detections)
+        print(batch_descriptions(detections, class_names))
 
     # Update the previous labels record
     previous_labels.clear()
     previous_labels.update(current_labels)
+
+
+    
     
 
-def draw_boxes(image, detections):
-    # Drawing bounding boxes on the image
-    for _, row in detections.iterrows():
-        x1, y1, x2, y2 = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
-        class_name = row['name']
-        confidence = row['confidence']
-        cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        cv2.putText(image, f'{class_name}: {confidence:.2f}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+def draw_boxes(image, detections, class_names):
+    for detection in detections:
+        x1, y1, x2, y2, confidence, class_id = detection[:6]
+        class_name = class_names[int(class_id)]
+        cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+        cv2.putText(image, f'{class_name}: {confidence:.2f}', (int(x1), int(y1) - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-    # Display image
     plt.imshow(image)
     plt.axis('off')
     plt.show()
+
 
 
 def openCameraFunction(yolo_model, previous_label):
@@ -93,8 +96,7 @@ def openCameraFunction(yolo_model, previous_label):
 
 if __name__ == "__main__":
     # yolo initialisation
-    yolo_model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
-    yolo_model.eval()
+    yolo_model = YOLO('yolov8n.pt')
     
     
     # Initialize the previous_labels dictionary
