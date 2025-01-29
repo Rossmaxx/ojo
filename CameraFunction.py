@@ -5,11 +5,6 @@ import time
 from ultralytics import YOLO
 
 
-# to supress a warning running on every cycle
-import warnings
-warnings.filterwarnings("ignore", category=FutureWarning)
-
-
 def detect_objects(yolo_model, image_tensor):
     results = yolo_model(image_tensor, conf=0.6)
     detections = results[0].boxes.data.cpu().numpy()  # Convert tensor to NumPy
@@ -25,7 +20,6 @@ def batch_descriptions(detections, class_names):
         description = f"Label: {class_name}\nPosition: Center at ({(x2+x1)/2:.2f}, {(y2+y1)/2:.2f}), Size: ({x2-x1}, {y2-y1})\n"
         description_batch.append(description)
     return " ".join(description_batch)
-
 
 
 def process_batch(image, detections, class_names, previous_labels):
@@ -46,9 +40,6 @@ def process_batch(image, detections, class_names, previous_labels):
     previous_labels.update(current_labels)
 
 
-    
-    
-
 def draw_boxes(image, detections, class_names):
     for detection in detections:
         x1, y1, x2, y2, confidence, class_id = detection[:6]
@@ -60,7 +51,6 @@ def draw_boxes(image, detections, class_names):
     plt.imshow(image)
     plt.axis('off')
     plt.show()
-
 
 
 def openCameraFunction(yolo_model, previous_label):
