@@ -60,16 +60,6 @@ def openCameraFunction(yolo_model, previous_label):
     while True:
         ret, frame = vid.read()
         
-        # Step 1: Add "please wait, processing" to the frame
-        processing_frame = frame.copy()
-        cv2.putText(processing_frame, "Please wait, processing...", (50, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-        cv2.imshow('frame', processing_frame)
-        cv2.waitKey(1)
-        time.sleep(0.5)
-
-        # pre process the frame
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img_pil, classname = detect_objects(yolo_model, frame)
         process_batch(frame, img_pil, classname , previous_label)
 
