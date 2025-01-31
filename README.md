@@ -1,6 +1,14 @@
 # OJO - We give eyes to the blind
 
-### Done by Roshan M R and Ashwin Ganga as part of AIthon 2.0 hackathon
+### Credits
+Author - Roshan M R (rossmaxx)
+Co-Authors 
+- Aswin Ganga (v1.0 - For AIthon 2.0)
+- Team RAYS - Mini project(
+    - Adithya K V 
+    - Sneha K
+    - Yuktha Prakash K
+)
 
 ### Later carried over to my mini project - Team RAYS
 
