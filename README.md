@@ -2,15 +2,13 @@
 
 ### Credits
 Author - Roshan M R (rossmaxx)
+
 Co-Authors 
 - Aswin Ganga (v1.0 - For AIthon 2.0)
-- Team RAYS - Mini project(
+- Team RAYS - Mini project
     - Adithya K V 
     - Sneha K
     - Yuktha Prakash K
-)
-
-### Later carried over to my mini project - Team RAYS
 
 ### Dependencies
 To get started, install the following Python packages:
