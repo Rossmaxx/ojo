@@ -22,9 +22,11 @@ def batch_descriptions(detections, class_names):
     return " ".join(description_batch)
 
 
-def process_batch(image, detections, class_names, previous_labels):
+def process_batch(frame, detections, class_names, previous_labels):
     current_labels = {}
-    draw_boxes(image, detections, class_names)
+    
+    # Draw bounding boxes directly on 'frame'
+    draw_boxes(frame, detections, class_names)
 
     for detection in detections:
         _, _, _, _, _, class_id = detection[:6]
@@ -47,10 +49,6 @@ def draw_boxes(image, detections, class_names):
         cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         cv2.putText(image, f'{class_name}: {confidence:.2f}', (int(x1), int(y1) - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
-    plt.imshow(image)
-    plt.axis('off')
-    plt.show()
 
 
 def openCameraFunction(yolo_model, previous_label):
