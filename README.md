@@ -4,4 +4,4 @@
 
 ### Later carried over to my mini project - Team RAYS
 
-You need some python packages to get started - opencv, matplotlib -- in progress --
+You need some python packages to get started - opencv, matplotlib, pytorch and ultralytics

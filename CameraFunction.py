@@ -88,7 +88,6 @@ if __name__ == "__main__":
     # yolo initialisation
     yolo_model = YOLO('yolov8m.pt')
     
-    
     # Initialize the previous_labels dictionary
     previous_labels = {}
     openCameraFunction(yolo_model, previous_labels)
