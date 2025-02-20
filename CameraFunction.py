@@ -27,7 +27,7 @@ def process_batch(frame, detections, class_names, previous_labels):
     draw_boxes(frame, detections, class_names)
 
     for detection in detections:
-        _, _, _, _, _, class_id = detection[:6]
+        class_id = detection[5]
         class_name = class_names[int(class_id)]
         current_labels[class_name] = class_name
 
