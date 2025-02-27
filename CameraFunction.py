@@ -67,8 +67,8 @@ def process_batch(frame, detections, class_names, previous_labels):
     frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
 
     # Check if the labels have changed
-    if current_labels != previous_labels:
-        batch_descriptions(detections, class_names, frame_width, frame_height)
+    #if current_labels != previous_labels:
+    batch_descriptions(detections, class_names, frame_width, frame_height)
 
     # Update the previous labels record
     previous_labels.clear()
