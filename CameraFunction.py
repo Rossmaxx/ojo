@@ -1,4 +1,5 @@
 import cv2 
+import pyttsx3
 
 from ultralytics import YOLO
 
@@ -17,6 +18,12 @@ def batch_descriptions(detections, class_names):
         class_name = class_names[int(class_id)]
         description = f"Label: {class_name}\nPosition: Center at ({(x2+x1)/2:.2f}, {(y2+y1)/2:.2f}), Size: ({x2-x1}, {y2-y1})\n"
         description_batch.append(description)
+        
+        speech_text = f"There is a {class_name} at {x1}, {y1}"
+
+        tts_engine.say(speech_text)
+        tts_engine.runAndWait()
+
     return " ".join(description_batch)
 
 
@@ -33,7 +40,7 @@ def process_batch(frame, detections, class_names, previous_labels):
 
     # Check if the labels have changed
     if current_labels != previous_labels:
-        print(batch_descriptions(detections, class_names))
+        batch_descriptions(detections, class_names)
 
     # Update the previous labels record
     previous_labels.clear()
@@ -73,6 +80,8 @@ def openCameraFunction(yolo_model, previous_label):
 if __name__ == "__main__":
     # yolo initialisation
     yolo_model = YOLO('yolov8m.pt')
+
+    tts_engine = pyttsx3.init()
     
     # Initialize the previous_labels dictionary
     previous_labels = {}
