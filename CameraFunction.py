@@ -11,20 +11,46 @@ def detect_objects(yolo_model, image_tensor):
     return detections, class_names
 
 
-def batch_descriptions(detections, class_names):
+def batch_descriptions(detections, class_names, frame_width, frame_height):
     description_batch = []
     for detection in detections:
         x1, y1, x2, y2, _, class_id = detection[:6]
         class_name = class_names[int(class_id)]
         description = f"Label: {class_name}\nPosition: Center at ({(x2+x1)/2:.2f}, {(y2+y1)/2:.2f}), Size: ({x2-x1}, {y2-y1})\n"
         description_batch.append(description)
-        
-        speech_text = f"There is a {class_name} at {x1}, {y1}"
+
+        position = get_relative_position(x1, y1, x2, y2, frame_width, frame_height)
+        speech_text = f"There is a {class_name} at {position}"
 
         tts_engine.say(speech_text)
-        tts_engine.runAndWait()
+    
+    tts_engine.runAndWait()
 
     return " ".join(description_batch)
+
+
+def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
+    """Determine relative position (left, center, right and top, middle, bottom)"""
+    center_x = (x1 + x2) / 2
+    center_y = (y1 + y2) / 2
+
+    # Determine horizontal position
+    if center_x < frame_width * 0.33:
+        horizontal_position = "left"
+    elif center_x > frame_width * 0.66:
+        horizontal_position = "right"
+    else:
+        horizontal_position = "center"
+
+    # Determine vertical position
+    if center_y < frame_height * 0.33:
+        vertical_position = "top"
+    elif center_y > frame_height * 0.66:
+        vertical_position = "bottom"
+    else:
+        vertical_position = "middle"
+
+    return f"{horizontal_position} {vertical_position}"
 
 
 def process_batch(frame, detections, class_names, previous_labels):
@@ -38,9 +64,11 @@ def process_batch(frame, detections, class_names, previous_labels):
         class_name = class_names[int(class_id)]
         current_labels[class_name] = class_name
 
+    frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
+
     # Check if the labels have changed
     if current_labels != previous_labels:
-        batch_descriptions(detections, class_names)
+        batch_descriptions(detections, class_names, frame_width, frame_height)
 
     # Update the previous labels record
     previous_labels.clear()
