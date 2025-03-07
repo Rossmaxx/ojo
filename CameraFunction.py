@@ -11,19 +11,22 @@ def detect_objects(yolo_model, image_tensor):
     return detections, class_names
 
 
-def batch_descriptions(detections, class_names, frame_width, frame_height):
+def batch_and_process_descriptions(detections, class_names, frame_width, frame_height):
     description_batch = []
-    for detection in detections:
+    speech_text = ""
+    for i, detection in enumerate(detections):
         x1, y1, x2, y2, _, class_id = detection[:6]
         class_name = class_names[int(class_id)]
         description = f"Label: {class_name}\nPosition: Center at ({(x2+x1)/2:.2f}, {(y2+y1)/2:.2f}), Size: ({x2-x1}, {y2-y1})\n"
         description_batch.append(description)
 
         position = get_relative_position(x1, y1, x2, y2, frame_width, frame_height)
-        speech_text = f"There is a {class_name} at {position}"
+        if i == 0:
+            speech_text += f"There is a {class_name} at {position} "
+        else:
+            speech_text += f"and a {class_name} at {position} "
 
-        tts_engine.say(speech_text)
-    
+    tts_engine.say(speech_text)
     tts_engine.runAndWait()
 
     return " ".join(description_batch)
@@ -67,7 +70,7 @@ def process_batch(frame, detections, class_names, previous_labels):
     frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
 
     # Check if the labels have changed
-    batch_descriptions(detections, class_names, frame_width, frame_height)
+    batch_and_process_descriptions(detections, class_names, frame_width, frame_height)
 
     # Update the previous labels record
     previous_labels.clear()
