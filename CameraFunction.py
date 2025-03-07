@@ -112,6 +112,7 @@ if __name__ == "__main__":
     yolo_model = YOLO('yolov8m.pt')
 
     tts_engine = pyttsx3.init()
+    tts_engine.setProperty('rate', 180)  # Adjust rate as needed
     
     # Initialize the previous_labels dictionary
     previous_labels = {}
