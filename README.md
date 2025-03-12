@@ -1,5 +1,9 @@
 # OJO - We give eyes to the blind
 
+### About
+This is a simple CV model designed to take camera input, detect objects and generate descriptions.
+This script's application involves helping blind people see.
+
 ### Credits
 Author - Roshan M R (rossmaxx)
 
@@ -18,10 +22,12 @@ To get started, install the following Python packages:
 - numpy (for numerical operations)
 - ultralytics (for YOLOv8 model)
 - pyttsx3 (text-to-speech module)
+- tkinker (GUI)
+- pillow (GUI)
 
 ### Installation:
 Run the following command to install all dependencies:
 ```
-pip install opencv-python torch numpy ultralytics pyttsx3
+pip install opencv-python torch numpy ultralytics pyttsx3 pillow
 ```
 Ensure you have Python 3.8+ installed before running the script.
