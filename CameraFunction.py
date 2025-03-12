@@ -1,4 +1,4 @@
-import cv2 
+import cv2
 import pyttsx3
 import tkinter as tk
 from tkinter import Label, Listbox
@@ -115,11 +115,13 @@ def openCameraFunction(yolo_model, previous_labels):
 
 
 if __name__ == "__main__":
+    tts_engine = pyttsx3.init()
+    tts_engine.setProperty('rate', 180)
+
+    tts_engine.say("Please wait, the model is starting")
+
     # YOLO model initialization
     yolo_model = YOLO('yolov8m.pt')
-
-    tts_engine = pyttsx3.init()
-    tts_engine.setProperty('rate', 180)  
 
     previous_labels = {}
     detected_objects = []  # Store detected objects for frontend display
