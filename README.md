@@ -26,7 +26,7 @@ Ensure you have Python 3.8+ installed before running the script.
 Author - Roshan M R (rossmaxx)
 
 Co-Authors 
-- Aswin Ganga (v1.0 - For AIthon 2.0 AI hackathon)
+- Aswin Ganga - @techy0ganga (v1.0 - For AIthon 2.0 AI hackathon)
 - Team RAYS - Mini project
     - Adithya K V 
     - Sneha K
