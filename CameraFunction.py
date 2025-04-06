@@ -13,7 +13,6 @@ tts_engine.setProperty('rate', 180)
 
 # Global variables
 vid = None
-previous_labels = {}
 detected_objects = []
 camera_open = False  # Track camera state
 
