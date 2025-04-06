@@ -7,7 +7,6 @@ from ultralytics import YOLO
 
 # Initialize YOLO model
 yolo_model = YOLO('yolov8m.pt')
-
 # Initialize TTS engine
 tts_engine = pyttsx3.init()
 tts_engine.setProperty('rate', 180)
@@ -34,9 +33,11 @@ def batch_and_process_descriptions(detections, class_names, frame_width, frame_h
         detected_objects.append(class_name)
 
         position = get_relative_position(x1, y1, x2, y2, frame_width, frame_height)
+        # generate template text for narration
         speech_text += f"There is a {class_name} at {position}. " if i == 0 else f"And a {class_name} at {position}. "
 
     update_listbox()
+    # say the template text
     if speech_text:
         tts_engine.say(speech_text)
         tts_engine.runAndWait()
