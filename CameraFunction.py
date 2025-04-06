@@ -3,6 +3,17 @@ import pyttsx3
 
 from ultralytics import YOLO
 
+# Initialize YOLO model
+yolo_model = YOLO('yolov8m.pt')
+# Initialize TTS engine
+tts_engine = pyttsx3.init()
+tts_engine.setProperty('rate', 180)
+
+# Global variables
+vid = None
+previous_labels = {}
+detected_objects = []
+camera_open = False  # Track camera state
 
 def detect_objects(yolo_model, image_tensor):
     results = yolo_model(image_tensor, conf=0.6)
@@ -21,16 +32,14 @@ def batch_and_process_descriptions(detections, class_names, frame_width, frame_h
         description_batch.append(description)
 
         position = get_relative_position(x1, y1, x2, y2, frame_width, frame_height)
-        if i == 0:
-            speech_text += f"There is a {class_name} at {position} "
-        else:
-            speech_text += f"and a {class_name} at {position} "
+        # generate template text for narration
+        speech_text += f"There is a {class_name} at {position}. " if i == 0 else f"And a {class_name} at {position}. "
 
-    tts_engine.say(speech_text)
-    tts_engine.runAndWait()
-
-    return " ".join(description_batch)
-
+    update_listbox()
+    # say the template text
+    if speech_text:
+        tts_engine.say(speech_text)
+        tts_engine.runAndWait()
 
 def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
     """Determine relative position (left, center, right and top, middle, bottom)"""
