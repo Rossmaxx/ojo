@@ -38,7 +38,6 @@ def batch_and_process_descriptions(detections, class_names, frame_width, frame_h
         else:
             speech_text += f" and a {class_name} at {position} "
 
-
     update_listbox()
     # say the template text
     if speech_text:
