@@ -33,9 +33,9 @@ def batch_and_process_descriptions(detections, class_names, frame_width, frame_h
         position = get_relative_position(x1, y1, x2, y2, frame_width, frame_height)
         # generate template text for narration
         if i == 0:
-            speech_text += f"There is a {class_name} at {position}. "
+            speech_text += f"There is a {class_name} at {position} "
         else:
-            speech_text += f" and a {class_name} at {position}. "
+            speech_text += f" and a {class_name} at {position} "
 
 
     update_listbox()
