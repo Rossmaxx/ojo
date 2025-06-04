@@ -3,9 +3,6 @@ import pyttsx3
 
 from ultralytics import YOLO
 
-# Global variables
-vid = None
-
 def detect_objects(yolo_model, image_tensor):
     results = yolo_model(image_tensor, conf=0.6)
     detections = results[0].boxes.data.cpu().numpy()  # Convert tensor to NumPy
