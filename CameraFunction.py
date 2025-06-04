@@ -3,6 +3,9 @@ import pyttsx3
 
 from ultralytics import YOLO
 
+# to compile in headless mode (Global flag)
+HEADLESS = True
+
 def detect_objects(yolo_model, image_tensor):
     results = yolo_model(image_tensor, conf=0.6)
     detections = results[0].boxes.data.cpu().numpy()  # Convert tensor to NumPy
@@ -58,8 +61,9 @@ def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
 def process_batch(frame, detections, class_names, previous_labels):
     current_labels = {}
     
-    # Draw bounding boxes directly on 'frame'
-    draw_boxes(frame, detections, class_names)
+    if not HEADLESS:
+        # Draw bounding boxes directly on 'frame'
+        draw_boxes(frame, detections, class_names)
 
     for detection in detections:
         class_id = detection[5]
@@ -75,15 +79,14 @@ def process_batch(frame, detections, class_names, previous_labels):
     previous_labels.clear()
     previous_labels.update(current_labels)
 
-
-def draw_boxes(image, detections, class_names):
-    for detection in detections:
-        x1, y1, x2, y2, confidence, class_id = detection[:6]
-        class_name = class_names[int(class_id)]
-        cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-        cv2.putText(image, f'{class_name}: {confidence:.2f}', (int(x1), int(y1) - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
+if not HEADLESS:
+    def draw_boxes(image, detections, class_names):
+        for detection in detections:
+            x1, y1, x2, y2, confidence, class_id = detection[:6]
+            class_name = class_names[int(class_id)]
+            cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+            cv2.putText(image, f'{class_name}: {confidence:.2f}', (int(x1), int(y1) - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
 def open_camera(yolo_model, previous_label):
     vid = cv2.VideoCapture(0)
@@ -97,7 +100,8 @@ def open_camera(yolo_model, previous_label):
         new_detections, classnames = detect_objects(yolo_model, frame)
         process_batch(frame, new_detections, classnames , previous_label)
 
-        cv2.imshow('frame', frame)
+        if not HEADLESS:
+            cv2.imshow('frame', frame)
         
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
