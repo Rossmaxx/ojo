@@ -85,7 +85,7 @@ def draw_boxes(image, detections, class_names):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
 
-def openCameraFunction(yolo_model, previous_label):
+def open_camera(yolo_model, previous_label):
     vid = cv2.VideoCapture(0)
     if not vid.isOpened():
         print("Error, video device failed to open")
@@ -94,8 +94,8 @@ def openCameraFunction(yolo_model, previous_label):
     while True:
         ret, frame = vid.read()
         
-        img_pil, classname = detect_objects(yolo_model, frame)
-        process_batch(frame, img_pil, classname , previous_label)
+        new_detections, classnames = detect_objects(yolo_model, frame)
+        process_batch(frame, new_detections, classnames , previous_label)
 
         cv2.imshow('frame', frame)
         
@@ -115,4 +115,4 @@ if __name__ == "__main__":
     
     # Initialize the previous_labels dictionary
     previous_labels = {}
-    openCameraFunction(yolo_model, previous_labels)
+    open_camera(yolo_model, previous_labels)
