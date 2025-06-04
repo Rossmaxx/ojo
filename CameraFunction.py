@@ -111,7 +111,7 @@ def openCameraFunction(yolo_model, previous_label):
 
 if __name__ == "__main__":
     # yolo initialisation
-    yolo_model = YOLO('yolov8m.pt')
+    yolo_model = YOLO('yolov8n.pt')
 
     tts_engine = pyttsx3.init()
     tts_engine.setProperty('rate', 180)  # Adjust rate as needed
