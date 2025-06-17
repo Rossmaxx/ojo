@@ -6,8 +6,8 @@ from ultralytics import YOLO
 HEADLESS = False
 
 
-def detect_objects(yolo_model, image_tensor):
-    results = yolo_model(image_tensor, conf=0.6)
+def detect_objects(yolo_model, frame):
+    results = yolo_model(frame, conf=0.6)
     detections = results[0].boxes.data.cpu().numpy()  # Convert tensor to NumPy
     class_names = yolo_model.names  # Class names from the model
     return detections, class_names
@@ -73,21 +73,16 @@ def open_camera(yolo_model):
     
     while True:
         ret, frame = vid.read()
-
-        if not HEADLESS:
-            cv2.imshow('frame', frame.copy())  # Show before processing
         
         detections, class_names = detect_objects(yolo_model, frame)
 
         if not HEADLESS:
             # Draw bounding boxes directly on 'frame'
             draw_boxes(frame, detections, class_names)
+            cv2.imshow('frame', frame)
 
         frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
         detections_to_tts(detections, class_names, frame_width, frame_height)
-
-        if not HEADLESS:
-            cv2.imshow('frame', frame)
         
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
