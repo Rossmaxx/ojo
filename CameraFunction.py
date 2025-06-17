@@ -4,7 +4,7 @@ import pyttsx3
 from ultralytics import YOLO
 
 # to compile in headless mode (Global flag)
-HEADLESS = True
+HEADLESS = False
 
 def detect_objects(yolo_model, image_tensor):
     results = yolo_model(image_tensor, conf=0.6)
