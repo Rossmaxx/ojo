@@ -13,7 +13,7 @@ def detect_objects(yolo_model, image_tensor):
     return detections, class_names
 
 
-def process_descriptions(detections, class_names, frame_width, frame_height):
+def detections_to_tts(detections, class_names, frame_width, frame_height):
     speech_text = ""
     for i, detection in enumerate(detections):
         x1, y1, x2, y2, _, class_id = detection[:6]
@@ -55,15 +55,6 @@ def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
     return f"{horizontal_position} {vertical_position}"
 
 
-def process_frames(frame, detections, class_names):
-    if not HEADLESS:
-        # Draw bounding boxes directly on 'frame'
-        draw_boxes(frame, detections, class_names)
-
-    frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
-    process_descriptions(detections, class_names, frame_width, frame_height)
-
-
 def draw_boxes(image, detections, class_names):
     for detection in detections:
         x1, y1, x2, y2, confidence, class_id = detection[:6]
@@ -84,8 +75,14 @@ def open_camera(yolo_model):
         if not HEADLESS:
             cv2.imshow('frame', frame.copy())  # Show before processing
         
-        new_detections, classnames = detect_objects(yolo_model, frame)
-        process_frames(frame, new_detections, classnames)
+        detections, class_names = detect_objects(yolo_model, frame)
+
+        if not HEADLESS:
+            # Draw bounding boxes directly on 'frame'
+            draw_boxes(frame, detections, class_names)
+
+        frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
+        detections_to_tts(detections, class_names, frame_width, frame_height)
 
         if not HEADLESS:
             cv2.imshow('frame', frame)
