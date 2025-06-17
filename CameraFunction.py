@@ -113,8 +113,11 @@ if __name__ == "__main__":
     # yolo initialisation
     yolo_model = YOLO('yolov8n.pt')
 
+    # text-to-speech
     tts_engine = pyttsx3.init()
     tts_engine.setProperty('rate', 180)  # Adjust rate as needed
+
+    tts_engine.say("Please wait, YOLO is loading for initialisation")
     
     # Initialize the previous_labels dictionary
     previous_labels = {}
