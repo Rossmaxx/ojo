@@ -1,10 +1,10 @@
 import cv2 
 import pyttsx3
-
 from ultralytics import YOLO
 
 # to compile in headless mode (Global flag)
 HEADLESS = False
+
 
 def detect_objects(yolo_model, image_tensor):
     results = yolo_model(image_tensor, conf=0.6)
@@ -30,6 +30,7 @@ def detections_to_tts(detections, class_names, frame_width, frame_height):
     if speech_text:
         tts_engine.say(speech_text)
         tts_engine.runAndWait()
+
 
 def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
     """Determine relative position (left, center, right and top, middle, bottom)"""
@@ -62,6 +63,7 @@ def draw_boxes(image, detections, class_names):
         cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         cv2.putText(image, f'{class_name}: {confidence:.2f}', (int(x1), int(y1) - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
 
 def open_camera(yolo_model):
     vid = cv2.VideoCapture(0)
