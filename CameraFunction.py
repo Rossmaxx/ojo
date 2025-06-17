@@ -95,6 +95,9 @@ def open_camera(yolo_model, previous_label):
     
     while True:
         ret, frame = vid.read()
+
+        if not HEADLESS:
+            cv2.imshow('frame', frame.copy())  # Show before processing
         
         new_detections, classnames = detect_objects(yolo_model, frame)
         process_batch(frame, new_detections, classnames , previous_label)
