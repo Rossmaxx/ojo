@@ -13,14 +13,11 @@ def detect_objects(yolo_model, image_tensor):
     return detections, class_names
 
 
-def batch_and_process_descriptions(detections, class_names, frame_width, frame_height):
-    description_batch = []
+def process_descriptions(detections, class_names, frame_width, frame_height):
     speech_text = ""
     for i, detection in enumerate(detections):
         x1, y1, x2, y2, _, class_id = detection[:6]
         class_name = class_names[int(class_id)]
-        description = f"Label: {class_name}\nPosition: Center at ({(x2+x1)/2:.2f}, {(y2+y1)/2:.2f}), Size: ({x2-x1}, {y2-y1})\n"
-        description_batch.append(description)
 
         position = get_relative_position(x1, y1, x2, y2, frame_width, frame_height)
         # generate template text for narration
@@ -58,13 +55,13 @@ def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
     return f"{horizontal_position} {vertical_position}"
 
 
-def process_batch(frame, detections, class_names):
+def process_frames(frame, detections, class_names):
     if not HEADLESS:
         # Draw bounding boxes directly on 'frame'
         draw_boxes(frame, detections, class_names)
 
     frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
-    batch_and_process_descriptions(detections, class_names, frame_width, frame_height)
+    process_descriptions(detections, class_names, frame_width, frame_height)
 
 
 def draw_boxes(image, detections, class_names):
@@ -88,7 +85,7 @@ def open_camera(yolo_model):
             cv2.imshow('frame', frame.copy())  # Show before processing
         
         new_detections, classnames = detect_objects(yolo_model, frame)
-        process_batch(frame, new_detections, classnames)
+        process_frames(frame, new_detections, classnames)
 
         if not HEADLESS:
             cv2.imshow('frame', frame)
@@ -110,5 +107,5 @@ if __name__ == "__main__":
     
     # yolo initialisation
     yolo_model = YOLO('yolov8n.pt')
-    
+
     open_camera(yolo_model)
