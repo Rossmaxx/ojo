@@ -58,26 +58,14 @@ def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
     return f"{horizontal_position} {vertical_position}"
 
 
-def process_batch(frame, detections, class_names, previous_labels):
-    current_labels = {}
-    
+def process_batch(frame, detections, class_names):
     if not HEADLESS:
         # Draw bounding boxes directly on 'frame'
         draw_boxes(frame, detections, class_names)
 
-    for detection in detections:
-        class_id = detection[5]
-        class_name = class_names[int(class_id)]
-        current_labels[class_name] = class_name
-
     frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
-
-    # Check if the labels have changed
     batch_and_process_descriptions(detections, class_names, frame_width, frame_height)
 
-    # Update the previous labels record
-    previous_labels.clear()
-    previous_labels.update(current_labels)
 
 def draw_boxes(image, detections, class_names):
     for detection in detections:
@@ -87,7 +75,7 @@ def draw_boxes(image, detections, class_names):
         cv2.putText(image, f'{class_name}: {confidence:.2f}', (int(x1), int(y1) - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-def open_camera(yolo_model, previous_label):
+def open_camera(yolo_model):
     vid = cv2.VideoCapture(0)
     if not vid.isOpened():
         print("Error, video device failed to open")
@@ -100,7 +88,7 @@ def open_camera(yolo_model, previous_label):
             cv2.imshow('frame', frame.copy())  # Show before processing
         
         new_detections, classnames = detect_objects(yolo_model, frame)
-        process_batch(frame, new_detections, classnames , previous_label)
+        process_batch(frame, new_detections, classnames)
 
         if not HEADLESS:
             cv2.imshow('frame', frame)
@@ -123,6 +111,4 @@ if __name__ == "__main__":
     # yolo initialisation
     yolo_model = YOLO('yolov8n.pt')
     
-    # Initialize the previous_labels dictionary
-    previous_labels = {}
-    open_camera(yolo_model, previous_labels)
+    open_camera(yolo_model)
