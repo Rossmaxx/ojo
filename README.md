@@ -40,6 +40,7 @@ Due to the blocking behavior of pyttsx3's text-to-speech engine, stopping the sc
 To exit:
   Spam `Ctrl + C` in the terminal window where the script is running.
 If you find a cleaner alternative to quit the script, feel free to contribute!
+
 ### Credits:
 Author - Roshan M R (rossmaxx)
 
