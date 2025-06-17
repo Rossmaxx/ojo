@@ -118,6 +118,7 @@ if __name__ == "__main__":
     tts_engine.setProperty('rate', 180)  # Adjust rate as needed
 
     tts_engine.say("Please wait, YOLO is loading for initialisation")
+    tts_engine.runAndWait()
     
     # Initialize the previous_labels dictionary
     previous_labels = {}
