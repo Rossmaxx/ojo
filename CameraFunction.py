@@ -29,6 +29,8 @@ def detections_to_text(detections, class_names, frame_width, frame_height):
     # say the template text
     if speech_text:
         return speech_text
+    
+    return ""
 
 
 def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
