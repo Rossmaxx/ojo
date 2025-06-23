@@ -13,7 +13,7 @@ def detect_objects(yolo_model, frame):
     return detections, class_names
 
 
-def detections_to_tts(detections, class_names, frame_width, frame_height):
+def detections_to_text(detections, class_names, frame_width, frame_height):
     speech_text = ""
     for i, detection in enumerate(detections):
         x1, y1, x2, y2, _, class_id = detection[:6]
@@ -28,8 +28,9 @@ def detections_to_tts(detections, class_names, frame_width, frame_height):
 
     # say the template text
     if speech_text:
-        tts_engine.say(speech_text)
-        tts_engine.runAndWait()
+        return speech_text
+    
+    return "no objects detected"
 
 
 def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
@@ -82,13 +83,19 @@ def open_camera(yolo_model):
             cv2.imshow('frame', frame)
 
         frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
-        detections_to_tts(detections, class_names, frame_width, frame_height)
+        speech_text = detections_to_text(detections, class_names, frame_width, frame_height)
         
+        speak_out(speech_text)
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     vid.release()
     cv2.destroyAllWindows()
+
+def speak_out(text):
+    tts_engine.say(text)
+    tts_engine.runAndWait()
 
 
 if __name__ == "__main__":
@@ -96,8 +103,7 @@ if __name__ == "__main__":
     tts_engine = pyttsx3.init()
     tts_engine.setProperty('rate', 180)  # Adjust rate as needed
 
-    tts_engine.say("Please wait, YOLO is loading for initialisation")
-    tts_engine.runAndWait()
+    speak_out("Please wait, YOLO is loading for initialisation")
     
     # yolo initialisation
     yolo_model = YOLO('yolov8n.pt')
