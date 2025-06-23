@@ -29,8 +29,6 @@ def detections_to_text(detections, class_names, frame_width, frame_height):
     # say the template text
     if speech_text:
         return speech_text
-    
-    return "no objects detected"
 
 
 def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
@@ -94,6 +92,8 @@ def open_camera(yolo_model):
     cv2.destroyAllWindows()
 
 def speak_out(text):
+    if not text.strip():
+        return
     tts_engine.say(text)
     tts_engine.runAndWait()
 
