@@ -87,6 +87,9 @@ def speak_out(text, tts_engine):
 
 
 if __name__ == "__main__":
+    # to allow graceful exit
+    signal(SIGINT, signal_handler)
+
     # text-to-speech
     tts_engine = pyttsx3.init()
     tts_engine.setProperty('rate', 180)  # Adjust rate as needed
@@ -95,9 +98,6 @@ if __name__ == "__main__":
     
     # yolo initialisation
     yolo_model = YOLO('yolov8n.pt')
-
-    # to allow graceful exit
-    signal(SIGINT, signal_handler)
 
     # camera working
     vid = cv2.VideoCapture(0)
@@ -109,6 +109,9 @@ if __name__ == "__main__":
     
     while True:
         ret, frame = vid.read()
+        if not ret or frame is None:
+            print("Warning: Failed to read from camera.")
+            continue
         
         detections, class_names = detect_objects(yolo_model, frame)
 

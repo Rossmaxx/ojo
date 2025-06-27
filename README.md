@@ -38,7 +38,7 @@ just set the boolean to `True` and you will hear just the audio.
 ### Note about exiting the script:
 Due to the blocking behavior of pyttsx3's text-to-speech engine, stopping the script cleanly can be tricky.
 To exit:
-  Spam `Ctrl + C` in the terminal window where the script is running.
+  press `Ctrl + C` in the terminal window where the script is running.
 If you find a cleaner alternative to quit the script, feel free to contribute!
 
 ### Credits:
