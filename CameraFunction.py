@@ -123,5 +123,6 @@ if __name__ == "__main__":
         
         speak_out(speech_text, tts_engine)
 
+        # fixme - not working due to lack of threading
         if cv2.waitKey(1) & 0xFF == ord('q'):
-            kill(getpid(), SIGINT)
+            signal_handler(SIGINT, None)
