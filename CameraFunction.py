@@ -1,6 +1,10 @@
 import cv2 
 import pyttsx3
+
+from os import kill, getpid
+from signal import signal, SIGINT
 from sys import exit
+
 from ultralytics import YOLO
 
 # to compile in headless mode (Global flag)
@@ -65,6 +69,14 @@ def draw_boxes(image, detections, class_names):
         cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         cv2.putText(image, f'{class_name}: {confidence:.2f}', (int(x1), int(y1) - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        
+
+def signal_handler(sig, frame):
+    print("Interrupt received. Cleaning up...")
+    tts_engine.stop()
+    vid.release()
+    cv2.destroyAllWindows()
+    exit(0)
 
 
 def speak_out(text, tts_engine):
@@ -83,6 +95,9 @@ if __name__ == "__main__":
     
     # yolo initialisation
     yolo_model = YOLO('yolov8n.pt')
+
+    # to allow graceful exit
+    signal(SIGINT, signal_handler)
 
     # camera working
     vid = cv2.VideoCapture(0)
@@ -108,7 +123,4 @@ if __name__ == "__main__":
         speak_out(speech_text, tts_engine)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    vid.release()
-    cv2.destroyAllWindows()
+            kill(getpid(), SIGINT)
