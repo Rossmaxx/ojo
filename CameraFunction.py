@@ -87,7 +87,9 @@ if __name__ == "__main__":
     # camera working
     vid = cv2.VideoCapture(0)
     if not vid.isOpened():
-        print("Error, video device failed to open")
+        error_msg = "Error, video device failed to open"
+        print(error_msg)
+        speak_out(error_msg, tts_engine)
         exit(1)
     
     while True:
