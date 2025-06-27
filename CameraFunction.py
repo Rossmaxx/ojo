@@ -1,5 +1,6 @@
 import cv2 
 import pyttsx3
+from sys import exit
 from ultralytics import YOLO
 
 # to compile in headless mode (Global flag)
@@ -66,11 +67,28 @@ def draw_boxes(image, detections, class_names):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
 
-def open_camera(yolo_model):
+def speak_out(text, tts_engine):
+    if not text.strip():
+        return
+    tts_engine.say(text)
+    tts_engine.runAndWait()
+
+
+if __name__ == "__main__":
+    # text-to-speech
+    tts_engine = pyttsx3.init()
+    tts_engine.setProperty('rate', 180)  # Adjust rate as needed
+
+    speak_out("Please wait, YOLO is loading for initialisation", tts_engine)
+    
+    # yolo initialisation
+    yolo_model = YOLO('yolov8n.pt')
+
+    # camera working
     vid = cv2.VideoCapture(0)
     if not vid.isOpened():
         print("Error, video device failed to open")
-        return
+        exit(1)
     
     while True:
         ret, frame = vid.read()
@@ -85,29 +103,10 @@ def open_camera(yolo_model):
         frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
         speech_text = detections_to_text(detections, class_names, frame_width, frame_height)
         
-        speak_out(speech_text)
+        speak_out(speech_text, tts_engine)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     vid.release()
     cv2.destroyAllWindows()
-
-def speak_out(text):
-    if not text.strip():
-        return
-    tts_engine.say(text)
-    tts_engine.runAndWait()
-
-
-if __name__ == "__main__":
-    # text-to-speech
-    tts_engine = pyttsx3.init()
-    tts_engine.setProperty('rate', 180)  # Adjust rate as needed
-
-    speak_out("Please wait, YOLO is loading for initialisation")
-    
-    # yolo initialisation
-    yolo_model = YOLO('yolov8n.pt')
-
-    open_camera(yolo_model)
