@@ -95,8 +95,6 @@ if __name__ == "__main__":
     tts_engine.setProperty('rate', 180)  # Adjust rate as needed
 
     speak_out("Please wait, YOLO is loading for initialisation", tts_engine)
-    
-    # yolo initialisation
     yolo_model = YOLO('yolov8n.pt')
 
     # camera working
