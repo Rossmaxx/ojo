@@ -10,32 +10,17 @@ from ultralytics import YOLO
 # to compile in headless mode (Global flag)
 HEADLESS = False
 
+# Focal length estimation based on scale: ~6.33 pixels/cm * 9cm baseline
+FOCAL_LENGTH_CM = 6.33
+BASELINE_CM = 9.0
+CAMERA_CONSTANT = FOCAL_LENGTH_CM * BASELINE_CM  # ~56.97
+
 
 def detect_objects(yolo_model, frame):
     results = yolo_model(frame, conf=0.6)
     detections = results[0].boxes.data.cpu().numpy()  # Convert tensor to NumPy
     class_names = yolo_model.names  # Class names from the model
     return detections, class_names
-
-
-def detections_to_text(detections, class_names, frame_width, frame_height):
-    speech_text = ""
-    for i, detection in enumerate(detections):
-        x1, y1, x2, y2, _, class_id = detection[:6]
-        class_name = class_names[int(class_id)]
-
-        position = get_relative_position(x1, y1, x2, y2, frame_width, frame_height)
-        # generate template text for narration
-        if i == 0:
-            speech_text += f"There is a {class_name} at {position} "
-        else:
-            speech_text += f" and a {class_name} at {position} "
-
-    # say the template text
-    if speech_text:
-        return speech_text
-    
-    return ""
 
 
 def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
@@ -74,18 +59,30 @@ def get_relative_depths(detections, disparity_map, class_names):
         if valid_disp.size == 0:
             continue
         avg_disp = np.mean(valid_disp)
-        depth_info.append((avg_disp, class_name, x1, y1, x2, y2))
+        depth_cm = CAMERA_CONSTANT / avg_disp
+        depth_info.append((depth_cm, class_name, x1, y1, x2, y2))
 
-    # Sort by disparity (closer → higher disparity)
-    depth_info.sort(reverse=True, key=lambda x: x[0])
+    # Sort by distance (closer → smaller depth)
+    depth_info.sort(key=lambda x: x[0])
     return depth_info
+
+
+def map_depth_to_word(depth_cm):
+    if depth_cm < 30:
+        return "very close"
+    elif depth_cm < 60:
+        return "near"
+    elif depth_cm < 100:
+        return "far"
+    else:
+        return "very far"
 
 
 def detections_to_text_with_depth(depth_info, frame_width, frame_height):
     speech_parts = []
-    for i, (disp, class_name, x1, y1, x2, y2) in enumerate(depth_info):
+    for (depth_cm, class_name, x1, y1, x2, y2) in depth_info:
         position = get_relative_position(x1, y1, x2, y2, frame_width, frame_height)
-        depth_word = "closer" if i == 0 else "farther"
+        depth_word = map_depth_to_word(depth_cm)
         speech_parts.append(f"a {class_name} {depth_word} at {position}")
     if speech_parts:
         return "There is " + " and ".join(speech_parts)
@@ -99,27 +96,26 @@ def draw_boxes(image, detections, class_names):
         cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         cv2.putText(image, f'{class_name}: {confidence:.2f}', (int(x1), int(y1) - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        
+
 
 def compute_depth_map(left_gray, right_gray):
-    # Apply median blur to reduce noise
-    left_blur = cv2.medianBlur(left_gray, 5)
-    right_blur = cv2.medianBlur(right_gray, 5)
-
     # Use StereoSGBM for better quality disparity
     stereo = cv2.StereoSGBM_create(
         minDisparity=0,
         numDisparities=64,
-        blockSize=5,
-        P1=8 * 3 * 5 ** 2,
-        P2=32 * 3 * 5 ** 2,
-        mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
+        blockSize=7,
+        P1=8*3*7**2,
+        P2=32*3*7**2,
+        disp12MaxDiff=1,
+        uniquenessRatio=10,
+        speckleWindowSize=100,
+        speckleRange=32
     )
-    disparity = stereo.compute(left_blur, right_blur).astype(np.float32) / 16.0
-    disparity[disparity < 0] = 0  # clip invalid
-
+    disparity = stereo.compute(left_gray, right_gray).astype(np.float32) / 16.0
+    disparity[disparity < 0] = 0
+    disparity = cv2.medianBlur(disparity, 5)
     disp_normalized = cv2.normalize(disparity, None, 0, 255, cv2.NORM_MINMAX)
-    return disp_normalized.astype(np.uint8)
+    return disp_normalized.astype(np.uint8), disparity
 
 
 def signal_handler(sig, frame):
@@ -168,21 +164,21 @@ if __name__ == "__main__":
         # Convert to grayscale for depth estimation
         gray_l = cv2.cvtColor(frame_left, cv2.COLOR_BGR2GRAY)
         gray_r = cv2.cvtColor(frame_right, cv2.COLOR_BGR2GRAY)
-        depth_map = compute_depth_map(gray_l, gray_r)
-        
+        disp_normalized, disparity_raw = compute_depth_map(gray_l, gray_r)
+
         detections, class_names = detect_objects(yolo_model, frame_left)
-        depth_info = get_relative_depths(detections, depth_map, class_names)
+        depth_info = get_relative_depths(detections, disparity_raw, class_names)
 
         if not HEADLESS:
             # Draw bounding boxes directly on 'frame'
             draw_boxes(frame_left, detections, class_names)
             cv2.imshow('Left Camera (Detection)', frame_left)
             cv2.imshow('Right Camera', frame_right)
-            cv2.imshow('Depth Map', depth_map)
+            cv2.imshow('Depth Map', disp_normalized)
 
         frame_height, frame_width = frame_left.shape[:2]  # Extract frame dimensions
         speech_text = detections_to_text_with_depth(depth_info, frame_width, frame_height)
-        
+
         speak_out(speech_text, tts_engine)
 
         # fixme - not working due to lack of threading
