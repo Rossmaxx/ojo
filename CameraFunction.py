@@ -74,7 +74,8 @@ def draw_boxes(image, detections, class_names):
 def compute_depth_map(left_gray, right_gray):
     # Create StereoBM matcher
     stereo = cv2.StereoBM_create(numDisparities=64, blockSize=15)
-    disparity = stereo.compute(left_gray, right_gray)
+    disparity = stereo.compute(left_gray, right_gray).astype(np.float32) / 16.0
+    disparity[disparity < 0] = 0  # Clip invalid values
     disp_normalized = cv2.normalize(disparity, None, 0, 255, cv2.NORM_MINMAX)
     return disp_normalized.astype(np.uint8)
 
