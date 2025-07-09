@@ -62,6 +62,36 @@ def get_relative_position(x1, y1, x2, y2, frame_width, frame_height):
     return f"{horizontal_position} {vertical_position}"
 
 
+def get_relative_depths(detections, disparity_map, class_names):
+    depth_info = []
+    for detection in detections:
+        x1, y1, x2, y2 = map(int, detection[:4])
+        class_id = int(detection[5])
+        class_name = class_names[class_id]
+
+        roi = disparity_map[y1:y2, x1:x2]
+        valid_disp = roi[roi > 0]
+        if valid_disp.size == 0:
+            continue
+        avg_disp = np.mean(valid_disp)
+        depth_info.append((avg_disp, class_name, x1, y1, x2, y2))
+
+    # Sort by disparity (closer → higher disparity)
+    depth_info.sort(reverse=True, key=lambda x: x[0])
+    return depth_info
+
+
+def detections_to_text_with_depth(depth_info, frame_width, frame_height):
+    speech_parts = []
+    for i, (disp, class_name, x1, y1, x2, y2) in enumerate(depth_info):
+        position = get_relative_position(x1, y1, x2, y2, frame_width, frame_height)
+        depth_word = "closer" if i == 0 else "farther"
+        speech_parts.append(f"a {class_name} {depth_word} at {position}")
+    if speech_parts:
+        return "There is " + " and ".join(speech_parts)
+    return ""
+
+
 def draw_boxes(image, detections, class_names):
     for detection in detections:
         x1, y1, x2, y2, confidence, class_id = detection[:6]
@@ -72,10 +102,22 @@ def draw_boxes(image, detections, class_names):
         
 
 def compute_depth_map(left_gray, right_gray):
-    # Create StereoBM matcher
-    stereo = cv2.StereoBM_create(numDisparities=64, blockSize=15)
-    disparity = stereo.compute(left_gray, right_gray).astype(np.float32) / 16.0
-    disparity[disparity < 0] = 0  # Clip invalid values
+    # Apply median blur to reduce noise
+    left_blur = cv2.medianBlur(left_gray, 5)
+    right_blur = cv2.medianBlur(right_gray, 5)
+
+    # Use StereoSGBM for better quality disparity
+    stereo = cv2.StereoSGBM_create(
+        minDisparity=0,
+        numDisparities=64,
+        blockSize=5,
+        P1=8 * 3 * 5 ** 2,
+        P2=32 * 3 * 5 ** 2,
+        mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
+    )
+    disparity = stereo.compute(left_blur, right_blur).astype(np.float32) / 16.0
+    disparity[disparity < 0] = 0  # clip invalid
+
     disp_normalized = cv2.normalize(disparity, None, 0, 255, cv2.NORM_MINMAX)
     return disp_normalized.astype(np.uint8)
 
@@ -129,6 +171,7 @@ if __name__ == "__main__":
         depth_map = compute_depth_map(gray_l, gray_r)
         
         detections, class_names = detect_objects(yolo_model, frame_left)
+        depth_info = get_relative_depths(detections, depth_map, class_names)
 
         if not HEADLESS:
             # Draw bounding boxes directly on 'frame'
@@ -138,7 +181,7 @@ if __name__ == "__main__":
             cv2.imshow('Depth Map', depth_map)
 
         frame_height, frame_width = frame_left.shape[:2]  # Extract frame dimensions
-        speech_text = detections_to_text(detections, class_names, frame_width, frame_height)
+        speech_text = detections_to_text_with_depth(depth_info, frame_width, frame_height)
         
         speak_out(speech_text, tts_engine)
 
