@@ -9,6 +9,7 @@ This script's application involves helping blind people "see" their surroundings
 To get started, install the following Python packages:
 
 - opencv-python (for image processing)
+- opencv-contrib-python (stereo processing)
 - torch (PyTorch, required for YOLO)
 - numpy (for numerical operations)
 - ultralytics (for YOLOv8 model)
@@ -17,7 +18,7 @@ To get started, install the following Python packages:
 ### Installation:
 Run the following command to install all dependencies:
 ```
-pip install opencv-python torch numpy ultralytics pyttsx3
+pip install opencv-python opencv-contrib-python torch numpy ultralytics pyttsx3
 ```
 Ensure you have Python 3.8+ installed before running the script.
 

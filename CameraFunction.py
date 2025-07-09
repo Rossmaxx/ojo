@@ -1,4 +1,5 @@
-import cv2 
+import cv2
+import numpy as np 
 import pyttsx3
 
 from os import kill, getpid
@@ -71,10 +72,19 @@ def draw_boxes(image, detections, class_names):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         
 
+def compute_depth_map(left_gray, right_gray):
+    # Create StereoBM matcher
+    stereo = cv2.StereoBM_create(numDisparities=64, blockSize=15)
+    disparity = stereo.compute(left_gray, right_gray)
+    disp_normalized = cv2.normalize(disparity, None, 0, 255, cv2.NORM_MINMAX)
+    return disp_normalized.astype(np.uint8)
+
+
 def signal_handler(sig, frame):
     print("Interrupt received. Cleaning up...")
     tts_engine.stop()
-    vid.release()
+    cam_left.release()
+    cam_right.release()
     cv2.destroyAllWindows()
     exit(0)
 
@@ -98,27 +108,36 @@ if __name__ == "__main__":
     yolo_model = YOLO('yolov8n.pt')
 
     # camera working
-    vid = cv2.VideoCapture(0)
-    if not vid.isOpened():
+    cam_left = cv2.VideoCapture(1)
+    cam_right = cv2.VideoCapture(2)
+    if not cam_left.isOpened() or not cam_right.isOpened():
         error_msg = "Error, video device failed to open"
         print(error_msg)
         speak_out(error_msg, tts_engine)
         exit(1)
     
     while True:
-        ret, frame = vid.read()
-        if not ret or frame is None:
+        ret_left, frame_left = cam_left.read()
+        ret_right, frame_right = cam_right.read()
+        if not ret_left or not ret_right or frame_left is None or frame_right is None:
             print("Warning: Failed to read from camera.")
             continue
+
+        # Convert to grayscale for depth estimation
+        gray_l = cv2.cvtColor(frame_left, cv2.COLOR_BGR2GRAY)
+        gray_r = cv2.cvtColor(frame_right, cv2.COLOR_BGR2GRAY)
+        depth_map = compute_depth_map(gray_l, gray_r)
         
-        detections, class_names = detect_objects(yolo_model, frame)
+        detections, class_names = detect_objects(yolo_model, frame_left)
 
         if not HEADLESS:
             # Draw bounding boxes directly on 'frame'
-            draw_boxes(frame, detections, class_names)
-            cv2.imshow('frame', frame)
+            draw_boxes(frame_left, detections, class_names)
+            cv2.imshow('Left Camera (Detection)', frame_left)
+            cv2.imshow('Right Camera', frame_right)
+            cv2.imshow('Depth Map', depth_map)
 
-        frame_height, frame_width = frame.shape[:2]  # Extract frame dimensions
+        frame_height, frame_width = frame_left.shape[:2]  # Extract frame dimensions
         speech_text = detections_to_text(detections, class_names, frame_width, frame_height)
         
         speak_out(speech_text, tts_engine)
