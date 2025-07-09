@@ -158,8 +158,8 @@ if __name__ == "__main__":
         ret_left, frame_left = cam_left.read()
         ret_right, frame_right = cam_right.read()
         if not ret_left or not ret_right or frame_left is None or frame_right is None:
-            print("Warning: Failed to read from camera.")
-            continue
+            print("Error: Failed to read from camera.")
+            signal_handler(SIGINT, None)
 
         # Convert to grayscale for depth estimation
         gray_l = cv2.cvtColor(frame_left, cv2.COLOR_BGR2GRAY)
