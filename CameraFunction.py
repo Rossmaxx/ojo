@@ -2,7 +2,6 @@ import cv2
 import numpy as np 
 import pyttsx3
 
-from os import kill, getpid
 from signal import signal, SIGINT
 from sys import exit
 
